@@ -1,0 +1,1 @@
+cmd_/Users/ojisan/Documents/100_project/uv_read/out/Default/chat-server := c++ -arch x86_64 -L/Users/ojisan/Documents/100_project/uv_read/out/Default  -o "/Users/ojisan/Documents/100_project/uv_read/out/Default/chat-server" /Users/ojisan/Documents/100_project/uv_read/out/Default/obj.target/chat-server/src/main.o /Users/ojisan/Documents/100_project/uv_read/out/Default/libuv.a -lm

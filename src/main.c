@@ -1,81 +1,63 @@
 
-/*
- * Copyright (c) 2016, Saúl Ibarra Corretgé <saghul@gmail.com>
- * Copyright (c) 2012, Ben Noordhuis <info@bnoordhuis.nl>
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+// Sample for reading a file asynchronously using libuv
+// taken from https://www.snip2code.com/Snippet/247423/Sample-for-reading-a-file-asynchronously
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <stddef.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
-#include <assert.h>
-
 #include <uv.h>
 
-#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
+static uv_fs_t openReq;
+static uv_fs_t readReq;
+static uv_fs_t closeReq;
+static uv_buf_t uvBuf;
+static char strBuf[65];
+static char dataBuf[64];
 
-static QUEUE users;
+static void onRead(uv_fs_t *req);
 
-static void on_read(uv_stream_t *handle, ssize_t nread, const uv_buf_t *buf);
-static void on_write(uv_write_t *req, int status);
-static void on_close(uv_handle_t *handle);
-
-int main(int argc, char **argv)
+static void readData(void)
 {
-    uv_fs_open(uv_default_loop(), &open_req, argv[1], O_RDONLY, 0, on_open);
-    uv_run(uv_default_loop(), UV_RUN_DEFAULT);
-
-    uv_fs_req_cleanup(&open_req);
-    uv_fs_req_cleanup(&read_req);
-    uv_fs_req_cleanup(&write_req);
-    return 0;
+    memset(strBuf, 0, sizeof(strBuf));
+    memcpy(strBuf, dataBuf, sizeof(dataBuf));
+    fprintf(stdout, "got some data: %s\n", strBuf);
+    memset(dataBuf, 0, sizeof(dataBuf));
+    uv_fs_read(uv_default_loop(), &readReq, openReq.result, &uvBuf, 1, -1, onRead);
 }
 
-void on_open(uv_fs_t *req)
+static void onRead(uv_fs_t *req)
 {
-    // The request passed to the callback is the same as the one the call setup
-    // function was passed.
-    assert(req == &open_req);
-    if (req->result >= 0)
-    {
-        iov = uv_buf_init(buffer, sizeof(buffer));
-        uv_fs_read(uv_default_loop(), &read_req, req->result,
-                   &iov, 1, -1, on_read);
-    }
-    else
-    {
-        fprintf(stderr, "error opening file: %s\n", uv_strerror((int)req->result));
-    }
-}
-
-void on_read(uv_fs_t *req)
-{
+    uv_fs_req_cleanup(req);
     if (req->result < 0)
     {
-        fprintf(stderr, "Read error: %s\n", uv_strerror(req->result));
+        fprintf(stderr, "error: %s\n", uv_strerror(req->result));
     }
     else if (req->result == 0)
     {
-        uv_fs_t close_req;
-        // synchronous
-        uv_fs_close(uv_default_loop(), &close_req, open_req.result, NULL);
+        uv_fs_close(uv_default_loop(), &closeReq, openReq.result, NULL);
     }
-    else if (req->result > 0)
+    else
     {
-        iov.len = req->result;
-        uv_fs_write(uv_default_loop(), &write_req, 1, &iov, 1, -1, on_write);
+        readData();
     }
+}
+
+static void onOpen(uv_fs_t *req)
+{
+    if (req->result < 0)
+    {
+        fprintf(stderr, "error: %s\n", uv_strerror(req->result));
+    }
+    else
+    {
+        uvBuf = uv_buf_init(dataBuf, sizeof(dataBuf));
+        uv_fs_read(uv_default_loop(), &readReq, req->result, &uvBuf, 1, -1, onRead);
+    }
+    uv_fs_req_cleanup(req);
+}
+
+int main(int argc, char *argv[])
+{
+    uv_fs_open(uv_default_loop(), &openReq, argv[1], O_RDONLY, 0, onOpen);
+    return uv_run(uv_default_loop(), UV_RUN_DEFAULT);
 }
