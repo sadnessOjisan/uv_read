@@ -321,17 +321,17 @@ $(obj).$(TOOLSET)/%.o: $(obj)/%.S FORCE_DO_CMD
 
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,chat-server.target.mk)))),)
-  include chat-server.target.mk
-endif
-ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
-    $(findstring $(join ^,$(prefix)),\
                  $(join ^,deps/libuv/libuv.target.mk)))),)
   include deps/libuv/libuv.target.mk
 endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,read_file.target.mk)))),)
+  include read_file.target.mk
+endif
 
 quiet_cmd_regen_makefile = ACTION Regenerating $@
-cmd_regen_makefile = cd $(srcdir); ./build/gyp/gyp_main.py -fmake --ignore-environment "-Goutput_dir=/Users/ojisan/Documents/100_project/uv_read/out" "--generator-output=/Users/ojisan/Documents/100_project/uv_read/out" "-Duv_library=static_library" "--depth=/Users/ojisan/Documents/100_project/uv_read" "--toplevel-dir=/Users/ojisan/Documents/100_project/uv_read" build.gyp
+cmd_regen_makefile = cd $(srcdir); ./build/gyp/gyp_main.py -fmake --ignore-environment "-Duv_library=static_library" "-Goutput_dir=/Users/ojisan/Documents/100_project/uv_read/out" "--toplevel-dir=/Users/ojisan/Documents/100_project/uv_read" "--depth=/Users/ojisan/Documents/100_project/uv_read" "--generator-output=/Users/ojisan/Documents/100_project/uv_read/out" build.gyp
 Makefile: $(srcdir)/deps/libuv/uv.gyp $(srcdir)/build.gyp
 	$(call do_cmd,regen_makefile)
 

@@ -3,4 +3,4 @@
 export builddir_name ?= /Users/ojisan/Documents/100_project/uv_read/out
 .PHONY: all
 all:
-	$(MAKE) chat-server
+	$(MAKE) read_file

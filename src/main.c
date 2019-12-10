@@ -1,7 +1,3 @@
-
-// Sample for reading a file asynchronously using libuv
-// taken from https://www.snip2code.com/Snippet/247423/Sample-for-reading-a-file-asynchronously
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -20,19 +16,12 @@ static void readData(void)
 {
     memset(strBuf, 0, sizeof(strBuf));
     memcpy(strBuf, dataBuf, sizeof(dataBuf));
-    fprintf(stdout, "got some data: %s\n", strBuf);
-    memset(dataBuf, 0, sizeof(dataBuf));
-    uv_fs_read(uv_default_loop(), &readReq, openReq.result, &uvBuf, 1, -1, onRead);
+    fprintf(stdout, "%s\n", strBuf);
 }
 
 static void onRead(uv_fs_t *req)
 {
-    uv_fs_req_cleanup(req);
-    if (req->result < 0)
-    {
-        fprintf(stderr, "error: %s\n", uv_strerror(req->result));
-    }
-    else if (req->result == 0)
+    if (req->result == 0)
     {
         uv_fs_close(uv_default_loop(), &closeReq, openReq.result, NULL);
     }
@@ -53,7 +42,6 @@ static void onOpen(uv_fs_t *req)
         uvBuf = uv_buf_init(dataBuf, sizeof(dataBuf));
         uv_fs_read(uv_default_loop(), &readReq, req->result, &uvBuf, 1, -1, onRead);
     }
-    uv_fs_req_cleanup(req);
 }
 
 int main(int argc, char *argv[])

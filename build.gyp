@@ -18,10 +18,10 @@
 {
   'targets': [
     {
-      'target_name': 'chat-server',
+      'target_name': 'read_file',
       'type': 'executable',
       'dependencies': ['deps/libuv/uv.gyp:libuv'],
-      'sources': ['src/main.c', 'src/queue.h', 'src/pokemon_names.h'],
+      'sources': ['src/main.c'],
     }
   ]
 }
